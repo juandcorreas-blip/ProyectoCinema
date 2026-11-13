@@ -1,5 +1,7 @@
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Funcion {
 
@@ -10,6 +12,7 @@ public class Funcion {
     private LocalTime hora;
     private double valorBase;
     private EstadoFuncion estado;
+    private List<Asiento> asientos;
 
     public Funcion(String codigo, Pelicula pelicula, Sala sala, LocalDate fecha, LocalTime hora, double valorBase) {
         this.codigo = codigo;
@@ -19,6 +22,7 @@ public class Funcion {
         this.hora = hora;
         this.valorBase = valorBase;
         this.estado = EstadoFuncion.PROGRAMADA;
+        this.asientos = new ArrayList<>();
     }
 
     public String getCodigo() {
@@ -76,4 +80,63 @@ public class Funcion {
     public void setEstado(EstadoFuncion estado) {
         this.estado = estado;
     }
+
+    public List<Asiento> getAsientos() {
+        return asientos;
+    }
+
+    public void setAsientos(List<Asiento> asientos) {
+        this.asientos = asientos;
+    }
+
+    public void generarAsientos() {
+        asientos.clear();
+        for (Asiento a : sala.getAsientos()) {
+            asientos.add(new Asiento(a.getCodigo(), a.getFila(), a.getNumero()));
+        }
+    }
+
+    public Asiento buscarAsiento(String codigo) {
+        for (Asiento a : asientos) {
+            if (a.getCodigo().equalsIgnoreCase(codigo)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    public int contarAsientosDisponibles() {
+        int total = 0;
+        for (Asiento a : asientos) {
+            if (a.getEstado() == EstadoAsiento.DISPONIBLE) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public int contarAsientosOcupados() {
+        return asientos.size() - contarAsientosDisponibles();
+    }
+
+    public List<Asiento> consultarAsientosDisponibles() {
+        List<Asiento> disponibles = new ArrayList<>();
+        for (Asiento a : asientos) {
+            if (a.getEstado() == EstadoAsiento.DISPONIBLE) {
+                disponibles.add(a);
+            }
+        }
+        return disponibles;
+    }
+
+    public double calcularValorEntrada(TipoEntrada tipo) {
+        return valorBase * tipo.getValor() / TipoEntrada.GENERAL.getValor();
+    }
+
+    @Override
+    public String toString() {
+        return codigo + " | " + pelicula.getNombre() + " | " + sala.getNombre() + " | " + fecha + " | " + hora
+                + " | $" + valorBase + " | " + contarAsientosDisponibles() + " disponibles";
+    }
+
 }
