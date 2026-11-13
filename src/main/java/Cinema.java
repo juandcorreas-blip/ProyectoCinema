@@ -67,94 +67,52 @@ public class Cinema {
         this.ventas = ventas;
     }
 
-    public Funcion obtenerFuncion(String codigo) throws FuncionNoEncontradaException {
-        Funcion funcion = buscarFuncion(codigo);
-        if (funcion == null) {
-            throw new FuncionNoEncontradaException("No existe una funcion con el codigo " + codigo + ".");
-        }
-        return funcion;
-    }
+    private static final int ASIENTOS_POR_FILA = 10;
+    private int contadorFunciones = 0;
+    private int contadorVentas = 0;
 
-    public void registrarPelicula(Pelicula pelicula) throws PeliculaDuplicadaException {
-        if (pelicula == null) {
-            throw new IllegalArgumentException("La pelicula no puede ser nula.");
-        }
-        if (buscarPelicula(pelicula.getCodigo()) != null) {
-            throw new PeliculaDuplicadaException("Ya existe una pelicula con el codigo " + pelicula.getCodigo() + ".");
-        }
-        peliculas.add(pelicula);
-    }
-
-    public boolean modificarPelicula(String codigo, String nombre, String genero, int duracion, ClasificacionPelicula clasificacion) {
-        Pelicula pelicula = buscarPelicula(codigo);
-        if (pelicula == null) {
-            return false;
-        }
-        pelicula.setNombre(nombre);
-        pelicula.setGenero(genero);
-        pelicula.setDuracion(duracion);
-        pelicula.setClasificacion(clasificacion);
-        return true;
-    }
-
-    public boolean deshabilitarPelicula(String codigo) {
-        Pelicula pelicula = buscarPelicula(codigo);
-        if (pelicula == null) {
-            return false;
-        }
-        pelicula.setEstado(EstadoPelicula.NO_DISPONIBLE);
-        return true;
-    }
-
-    public List<Pelicula> consultarPeliculasDisponibles() {
-        List<Pelicula> disponibles = new ArrayList<>();
+    public Pelicula buscarPelicula(String codigo) {
         for (Pelicula p : peliculas) {
-            if (p.getEstado() == EstadoPelicula.DISPONIBLE) {
-                disponibles.add(p);
+            if (p.getCodigo().equalsIgnoreCase(codigo)) {
+                return p;
             }
         }
-        return disponibles;
+        return null;
     }
 
-    public void registrarSala(Sala sala) throws SalaDuplicadaException {
-        if (sala == null) {
-            throw new IllegalArgumentException("La sala no puede ser nula.");
+    public Sala buscarSala(String codigo) {
+        for (Sala s : salas) {
+            if (s.getCodigo().equalsIgnoreCase(codigo)) {
+                return s;
+            }
         }
-        if (buscarSala(sala.getCodigo()) != null) {
-            throw new SalaDuplicadaException("Ya existe una sala con el codigo " + sala.getCodigo() + ".");
-        }
-        if (sala.getAsientos().isEmpty()) {
-            sala.generarAsientos(ASIENTOS_POR_FILA);
-        }
-        salas.add(sala);
+        return null;
     }
 
-    public boolean modificarSala(String codigo, String nombre, int capacidad) {
-        Sala sala = buscarSala(codigo);
-        if (sala == null) {
-            return false;
+    public Funcion buscarFuncion(String codigo) {
+        for (Funcion f : funciones) {
+            if (f.getCodigo().equalsIgnoreCase(codigo)) {
+                return f;
+            }
         }
-        sala.setNombre(nombre);
-        sala.setCapacidad(capacidad);
-        sala.generarAsientos(ASIENTOS_POR_FILA);
-        return true;
+        return null;
     }
 
-    public boolean deshabilitarSala(String codigo) {
-        Sala sala = buscarSala(codigo);
-        if (sala == null) {
-            return false;
+    public Cliente buscarCliente(String identificacion) {
+        for (Cliente c : clientes) {
+            if (c.getIdentificacion().equalsIgnoreCase(identificacion)) {
+                return c;
+            }
         }
-        sala.setEstado(EstadoSala.FUERA_DE_SERVICIO);
-        return true;
+        return null;
     }
 
-
-    public boolean registrarCliente(Cliente cliente) {
-        if (cliente == null || buscarCliente(cliente.getIdentificacion()) != null) {
-            return false;
+    public Venta buscarVenta(String codigo) {
+        for (Venta v : ventas) {
+            if (v.getCodigo().equalsIgnoreCase(codigo)) {
+                return v;
+            }
         }
-        clientes.add(cliente);
-        return true;
+        return null;
     }
 }

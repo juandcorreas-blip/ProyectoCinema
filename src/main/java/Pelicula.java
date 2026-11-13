@@ -63,4 +63,9 @@ public class Pelicula {
     public void setEstado(EstadoPelicula estado) {
         this.estado = estado;
     }
+
+    @Override
+    public String toString() {
+        return codigo + " - " + nombre + " | " + genero + " | " + duracion + " min | " + clasificacion + " | " + estado;
+    }
 }
