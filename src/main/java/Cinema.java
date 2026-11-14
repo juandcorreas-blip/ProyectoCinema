@@ -214,6 +214,46 @@ public class Cinema {
         venta.getAsiento().setEstado(EstadoAsiento.DISPONIBLE);
         venta.setEstado(EstadoVenta.CANCELADA);
     }
+    public int calcularTotalEntradasVendidas() {
+        int total = 0;
+        for (Venta v : ventas) {
+            if (v.getEstado() == EstadoVenta.ACTIVA) {
+                total++;
+            }
+        }
+        return total;
+    }
+    public double calcularTotalIngresos() {
+        double total = 0;
+        for (Venta v : ventas) {
+            if (v.getEstado() == EstadoVenta.ACTIVA) {
+                total += v.getValorPagado();
+            }
+        }
+        return total;
+    }
+    public int contarEntradasPelicula(Pelicula pelicula) {
+        int cantidad = 0;
+        for (Venta v : ventas) {
+            if (v.getEstado() == EstadoVenta.ACTIVA
+                    && v.getFuncion().getPelicula().getCodigo().equalsIgnoreCase(pelicula.getCodigo())) {
+                cantidad++;
+            }
+        }
+        return cantidad;
+    }
 
+    public Pelicula obtenerPeliculaMasVendida() {
+        Pelicula masVendida = null;
+        int maximo = 0;
+        for (Pelicula p : peliculas) {
+            int cantidad = contarEntradasPelicula(p);
+            if (cantidad > maximo) {
+                maximo = cantidad;
+                masVendida = p;
+            }
+        }
+        return masVendida;
+    }
 
 }
