@@ -118,8 +118,97 @@ public class Cinema {
         }
         return null;
     }
+    public Funcion obtenerFuncion(String codigo) throws FuncionNoEncontradaException {
+        Funcion funcion = buscarFuncion(codigo);
+        if (funcion == null) {
+            throw new FuncionNoEncontradaException("No existe una funcion con el codigo " + codigo + ".");
+        }
+        return funcion;
+    }
 
-    // ---------------- Funciones ----------------
+    public void registrarPelicula(Pelicula pelicula) throws PeliculaDuplicadaException {
+        if (pelicula == null) {
+            throw new IllegalArgumentException("La pelicula no puede ser nula.");
+        }
+        if (buscarPelicula(pelicula.getCodigo()) != null) {
+            throw new PeliculaDuplicadaException("Ya existe una pelicula con el codigo " + pelicula.getCodigo() + ".");
+        }
+        peliculas.add(pelicula);
+    }
+
+    public boolean modificarPelicula(String codigo, String nombre, String genero, int duracion, ClasificacionPelicula clasificacion) {
+        Pelicula pelicula = buscarPelicula(codigo);
+        if (pelicula == null) {
+            return false;
+        }
+        pelicula.setNombre(nombre);
+        pelicula.setGenero(genero);
+        pelicula.setDuracion(duracion);
+        pelicula.setClasificacion(clasificacion);
+        return true;
+    }
+
+    public boolean deshabilitarPelicula(String codigo) {
+        Pelicula pelicula = buscarPelicula(codigo);
+        if (pelicula == null) {
+            return false;
+        }
+        pelicula.setEstado(EstadoPelicula.NO_DISPONIBLE);
+        return true;
+    }
+
+    public List<Pelicula> consultarPeliculasDisponibles() {
+        List<Pelicula> disponibles = new ArrayList<>();
+        for (Pelicula p : peliculas) {
+            if (p.getEstado() == EstadoPelicula.DISPONIBLE) {
+                disponibles.add(p);
+            }
+        }
+        return disponibles;
+    }
+
+    public void registrarSala(Sala sala) throws SalaDuplicadaException {
+        if (sala == null) {
+            throw new IllegalArgumentException("La sala no puede ser nula.");
+        }
+        if (buscarSala(sala.getCodigo()) != null) {
+            throw new SalaDuplicadaException("Ya existe una sala con el codigo " + sala.getCodigo() + ".");
+        }
+        if (sala.getAsientos().isEmpty()) {
+            sala.generarAsientos(ASIENTOS_POR_FILA);
+        }
+        salas.add(sala);
+    }
+
+    public boolean modificarSala(String codigo, String nombre, int capacidad) {
+        Sala sala = buscarSala(codigo);
+        if (sala == null) {
+            return false;
+        }
+        sala.setNombre(nombre);
+        sala.setCapacidad(capacidad);
+        sala.generarAsientos(ASIENTOS_POR_FILA);
+        return true;
+    }
+
+    public boolean deshabilitarSala(String codigo) {
+        Sala sala = buscarSala(codigo);
+        if (sala == null) {
+            return false;
+        }
+        sala.setEstado(EstadoSala.FUERA_DE_SERVICIO);
+        return true;
+    }
+
+
+    public boolean registrarCliente(Cliente cliente) {
+        if (cliente == null || buscarCliente(cliente.getIdentificacion()) != null) {
+            return false;
+        }
+        clientes.add(cliente);
+        return true;
+    }
+
 
     public Funcion programarFuncion(Pelicula pelicula, Sala sala, LocalDate fecha, LocalTime hora, double valorBase)
             throws SalaNoDisponibleException {
@@ -160,7 +249,6 @@ public class Cinema {
         return resultado;
     }
 
-    // ---------------- Ventas ----------------
 
     public Venta venderEntrada(String codigoFuncion, Cliente cliente, TipoEntrada tipoEntrada, String codigoAsiento)
             throws FuncionNoEncontradaException, SinAsientosDisponiblesException, AsientoOcupadoException {
@@ -223,6 +311,7 @@ public class Cinema {
         }
         return total;
     }
+
     public double calcularTotalIngresos() {
         double total = 0;
         for (Venta v : ventas) {
@@ -232,6 +321,7 @@ public class Cinema {
         }
         return total;
     }
+
     public int contarEntradasPelicula(Pelicula pelicula) {
         int cantidad = 0;
         for (Venta v : ventas) {
@@ -242,6 +332,7 @@ public class Cinema {
         }
         return cantidad;
     }
+
 
     public Pelicula obtenerPeliculaMasVendida() {
         Pelicula masVendida = null;
@@ -255,5 +346,6 @@ public class Cinema {
         }
         return masVendida;
     }
+
 
 }

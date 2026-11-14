@@ -29,8 +29,7 @@ public class Aplicacion {
         } while (opcion != 10);
     }
 
-    // ---------------- Datos iniciales ----------------
-    /** Deja algunos datos cargados para poder probar el menu desde el inicio. */
+
     private static void cargarDatosIniciales() {
         try {
             cinema.registrarPelicula(new Pelicula("P1", "Interestelar", "Ciencia ficcion", 169, ClasificacionPelicula.MAYORES_12));
@@ -52,7 +51,6 @@ public class Aplicacion {
         }
     }
 
-    // ---------------- Menu principal ----------------
     private static void mostrarMenu() {
         System.out.println();
         System.out.println("==============================");
@@ -70,7 +68,6 @@ public class Aplicacion {
         System.out.println("10. Salir");
     }
 
-    // ---------------- Apoyo para mostrar ----------------
     private static void mostrarOcupacion(Funcion funcion) {
         System.out.println("Funcion: " + funcion.getPelicula().getNombre());
         System.out.println("Sala: " + funcion.getSala().getNombre());
@@ -98,7 +95,6 @@ public class Aplicacion {
         }
     }
 
-    // ---------------- Lectura de datos ----------------
     private static String leerTexto(String mensaje) {
         System.out.print(mensaje);
         return scanner.nextLine().trim();
@@ -172,7 +168,7 @@ public class Aplicacion {
         return valores[opcion - 1];
     }
 
-    /** Si recibe una funcion muestra el valor que pagaria el cliente; si es null muestra la tarifa definida. */
+
     private static TipoEntrada leerTipoEntrada(Funcion funcion) {
         TipoEntrada[] valores = TipoEntrada.values();
         int opcion;
