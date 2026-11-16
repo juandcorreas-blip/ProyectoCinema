@@ -17,6 +17,18 @@ public class Aplicacion {
             opcion = leerEntero("Seleccione una opcion: ");
             try {
                 switch (opcion) {
+                    case 1:
+                        venderEntrada();
+                        break;
+                    case 2:
+                        cancelarVenta();
+                        break;
+                    case 5:
+                        consultarDisponibilidad();
+                        break;
+                    case 9:
+                        generarReportes();
+                        break;
                     case 10:
                         System.out.println("Hasta pronto.");
                         break;
@@ -66,6 +78,88 @@ public class Aplicacion {
         System.out.println("8. Administrar salas");
         System.out.println("9. Generar reportes");
         System.out.println("10. Salir");
+    }
+
+    private static void venderEntrada()
+            throws FuncionNoEncontradaException, SinAsientosDisponiblesException, AsientoOcupadoException {
+        imprimirLista(cinema.consultarFuncionesProgramadas(), "No hay funciones programadas.");
+        Funcion funcion = cinema.obtenerFuncion(leerTexto("Codigo de la funcion: "));
+
+        String identificacion = leerTexto("Identificacion del cliente: ");
+        Cliente cliente = cinema.buscarCliente(identificacion);
+        if (cliente == null) {
+            System.out.println("El cliente no esta registrado, vamos a registrarlo.");
+            String nombre = leerTexto("Nombre del cliente: ");
+            TipoCliente tipoCliente = leerTipoCliente();
+            cliente = new Cliente(identificacion, nombre, tipoCliente);
+            cinema.registrarCliente(cliente);
+        }
+
+        TipoEntrada tipoEntrada = leerTipoEntrada(funcion);
+        System.out.println("Asientos disponibles: " + codigosAsientos(funcion.consultarAsientosDisponibles()));
+        String codigoAsiento = leerTexto("Asiento seleccionado: ");
+
+        Venta venta = cinema.venderEntrada(funcion.getCodigo(), cliente, tipoEntrada, codigoAsiento);
+        System.out.println("Venta registrada.");
+        System.out.println(cinema.generarEntrada(venta));
+    }
+
+    private static void cancelarVenta() throws VentaNoEncontradaException {
+        String codigo = leerTexto("Codigo de la venta a cancelar: ");
+        cinema.cancelarVenta(codigo);
+        System.out.println("Venta cancelada y asiento liberado.");
+    }
+
+    private static void consultarDisponibilidad() throws FuncionNoEncontradaException {
+        imprimirLista(cinema.consultarFuncionesProgramadas(), "No hay funciones programadas.");
+        Funcion funcion = cinema.obtenerFuncion(leerTexto("Codigo de la funcion: "));
+        mostrarOcupacion(funcion);
+        System.out.println();
+        for (Asiento a : funcion.getAsientos()) {
+            System.out.println(a.getCodigo() + " " + (a.getEstado() == EstadoAsiento.DISPONIBLE ? "Disponible" : "Ocupado"));
+        }
+    }
+
+    private static void generarReportes() throws FuncionNoEncontradaException {
+        int opcion;
+        do {
+            System.out.println();
+            System.out.println("--- Reportes ---");
+            System.out.println("1. Total de entradas vendidas");
+            System.out.println("2. Total de ingresos");
+            System.out.println("3. Pelicula con mayor cantidad de entradas vendidas");
+            System.out.println("4. Ocupacion de una funcion");
+            System.out.println("5. Funciones programadas en una fecha");
+            System.out.println("6. Volver");
+            opcion = leerEntero("Seleccione una opcion: ");
+            switch (opcion) {
+                case 1:
+                    System.out.println("Entradas vendidas: " + cinema.calcularTotalEntradasVendidas());
+                    break;
+                case 2:
+                    System.out.println("Total de ingresos: $" + cinema.calcularTotalIngresos());
+                    break;
+                case 3:
+                    Pelicula masVendida = cinema.obtenerPeliculaMasVendida();
+                    if (masVendida == null) {
+                        System.out.println("Todavia no hay entradas vendidas.");
+                    } else {
+                        System.out.println(masVendida.getNombre() + " con " + cinema.contarEntradasPelicula(masVendida) + " entradas vendidas.");
+                    }
+                    break;
+                case 4:
+                    mostrarOcupacion(cinema.obtenerFuncion(leerTexto("Codigo de la funcion: ")));
+                    break;
+                case 5:
+                    LocalDate fecha = leerFecha("Fecha (AAAA-MM-DD): ");
+                    imprimirLista(cinema.consultarFuncionesPorFecha(fecha), "No hay funciones programadas para esa fecha.");
+                    break;
+                case 6:
+                    break;
+                default:
+                    System.out.println("Opcion no valida.");
+            }
+        } while (opcion != 6);
     }
 
     private static void mostrarOcupacion(Funcion funcion) {
