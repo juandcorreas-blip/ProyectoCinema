@@ -123,5 +123,127 @@ class CinemaTest {
         assertThrows(FuncionNoEncontradaException.class, () -> cinema.obtenerFuncion("FUN-999"));
     }
 
+    // ---------- Ventas ----------
+    @Test
+    void venderEntradaOcupaElAsientoYCalculaElValor() throws Exception {
+        Venta venta = cinema.venderEntrada("FUN-001", ana, TipoEntrada.ESTUDIANTE, "A1");
+        assertEquals("VEN-001", venta.getCodigo());
+        assertEquals(12000, venta.getValorPagado(), 0.001);
+        assertEquals(EstadoVenta.ACTIVA, venta.getEstado());
+        assertNotNull(venta.getFechaHoraVenta());
+        assertEquals(EstadoAsiento.OCUPADO, funcion1.buscarAsiento("A1").getEstado());
+    }
+
+    @Test
+    void venderUnAsientoOcupadoLanzaExcepcion() throws Exception {
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        assertThrows(AsientoOcupadoException.class,
+                () -> cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1"));
+        assertEquals(1, cinema.getVentas().size());
+    }
+
+    @Test
+    void venderParaFuncionInexistenteLanzaExcepcion() {
+        assertThrows(FuncionNoEncontradaException.class,
+                () -> cinema.venderEntrada("FUN-999", ana, TipoEntrada.GENERAL, "A1"));
+    }
+
+    @Test
+    void venderSinAsientosDisponiblesLanzaExcepcion() {
+        for (Asiento a : funcion1.getAsientos()) {
+            a.setEstado(EstadoAsiento.OCUPADO);
+        }
+        assertThrows(SinAsientosDisponiblesException.class,
+                () -> cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1"));
+    }
+
+    @Test
+    void venderAClienteNoRegistradoLanzaExcepcion() {
+        Cliente desconocido = new Cliente("9999", "Nadie", TipoCliente.GENERAL);
+        assertThrows(IllegalArgumentException.class,
+                () -> cinema.venderEntrada("FUN-001", desconocido, TipoEntrada.GENERAL, "A1"));
+    }
+
+    @Test
+    void venderUnAsientoQueNoExisteLanzaExcepcion() {
+        assertThrows(IllegalArgumentException.class,
+                () -> cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "Z99"));
+    }
+
+    @Test
+    void laOcupacionEsIndependienteEntreFunciones() throws Exception {
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        assertEquals(1, funcion1.contarAsientosOcupados());
+        assertEquals(0, funcion2.contarAsientosOcupados());
+        cinema.venderEntrada("FUN-002", ana, TipoEntrada.GENERAL, "A1");
+        assertEquals(1, funcion2.contarAsientosOcupados());
+    }
+
+    @Test
+    void generarEntradaIncluyeLosDatosDeLaVenta() throws Exception {
+        Venta venta = cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "B3");
+        String entrada = cinema.generarEntrada(venta);
+        assertTrue(entrada.contains("Interestelar"));
+        assertTrue(entrada.contains("B3"));
+        assertTrue(entrada.contains("Ana Perez"));
+    }
+
+    // ---------- Cancelacion ----------
+    @Test
+    void cancelarVentaLiberaElAsientoYCambiaElEstado() throws Exception {
+        Venta venta = cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        cinema.cancelarVenta(venta.getCodigo());
+        assertEquals(EstadoVenta.CANCELADA, venta.getEstado());
+        assertEquals(EstadoAsiento.DISPONIBLE, funcion1.buscarAsiento("A1").getEstado());
+    }
+
+    @Test
+    void cancelarVentaInexistenteLanzaExcepcion() {
+        assertThrows(VentaNoEncontradaException.class, () -> cinema.cancelarVenta("VEN-777"));
+    }
+
+    @Test
+    void cancelarDosVecesLaMismaVentaLanzaExcepcion() throws Exception {
+        Venta venta = cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        cinema.cancelarVenta(venta.getCodigo());
+        assertThrows(IllegalStateException.class, () -> cinema.cancelarVenta(venta.getCodigo()));
+    }
+
+    @Test
+    void despuesDeCancelarElAsientoSePuedeVolverAVender() throws Exception {
+        Venta venta = cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        cinema.cancelarVenta(venta.getCodigo());
+        Venta nueva = cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        assertEquals(EstadoVenta.ACTIVA, nueva.getEstado());
+    }
+
+    // ---------- Reportes ----------
+    @Test
+    void reportesSinVentasEstanEnCero() {
+        assertEquals(0, cinema.calcularTotalEntradasVendidas());
+        assertEquals(0, cinema.calcularTotalIngresos(), 0.001);
+        assertNull(cinema.obtenerPeliculaMasVendida());
+    }
+
+    @Test
+    void reportesContabilizanSoloLasVentasActivas() throws Exception {
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.ESTUDIANTE, "A2");
+        Venta tercera = cinema.venderEntrada("FUN-002", ana, TipoEntrada.NINO, "A1");
+        cinema.cancelarVenta(tercera.getCodigo());
+        assertEquals(2, cinema.calcularTotalEntradasVendidas());
+        assertEquals(27000, cinema.calcularTotalIngresos(), 0.001);
+    }
+
+    @Test
+    void peliculaMasVendidaEsLaQueTieneMasEntradasActivas() throws Exception {
+        Funcion funcionCoco = cinema.programarFuncion(coco, sala1, LocalDate.of(2026, 11, 22), LocalTime.of(16, 0), 10000);
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A1");
+        cinema.venderEntrada("FUN-001", ana, TipoEntrada.GENERAL, "A2");
+        cinema.venderEntrada(funcionCoco.getCodigo(), ana, TipoEntrada.GENERAL, "A1");
+        assertSame(interestelar, cinema.obtenerPeliculaMasVendida());
+        assertEquals(2, cinema.contarEntradasPelicula(interestelar));
+        assertEquals(1, cinema.contarEntradasPelicula(coco));
+    }
 
 }
