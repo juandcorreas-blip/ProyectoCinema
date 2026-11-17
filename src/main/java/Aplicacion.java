@@ -23,8 +23,23 @@ public class Aplicacion {
                     case 2:
                         cancelarVenta();
                         break;
+                    case 3:
+                        consultarPeliculas();
+                        break;
+                    case 4:
+                        consultarFunciones();
+                        break;
                     case 5:
                         consultarDisponibilidad();
+                        break;
+                    case 6:
+                        administrarPeliculas();
+                        break;
+                    case 7:
+                        administrarFunciones();
+                        break;
+                    case 8:
+                        administrarSalas();
                         break;
                     case 9:
                         generarReportes();
@@ -119,7 +134,151 @@ public class Aplicacion {
             System.out.println(a.getCodigo() + " " + (a.getEstado() == EstadoAsiento.DISPONIBLE ? "Disponible" : "Ocupado"));
         }
     }
+    private static void consultarPeliculas() {
+        imprimirLista(cinema.consultarPeliculasDisponibles(), "No hay peliculas disponibles.");
+    }
 
+    private static void consultarFunciones() {
+        imprimirLista(cinema.consultarFuncionesProgramadas(), "No hay funciones programadas.");
+    }
+
+    private static void administrarPeliculas() throws PeliculaDuplicadaException {
+        int opcion;
+        do {
+            System.out.println();
+            System.out.println("--- Administrar peliculas ---");
+            System.out.println("1. Registrar pelicula");
+            System.out.println("2. Consultar peliculas");
+            System.out.println("3. Modificar pelicula");
+            System.out.println("4. Deshabilitar pelicula");
+            System.out.println("5. Volver");
+            opcion = leerEntero("Seleccione una opcion: ");
+            switch (opcion) {
+                case 1:
+                    String codigo = leerTexto("Codigo: ");
+                    String nombre = leerTexto("Nombre: ");
+                    String genero = leerTexto("Genero: ");
+                    int duracion = leerEntero("Duracion en minutos: ");
+                    ClasificacionPelicula clasificacion = leerClasificacion();
+                    cinema.registrarPelicula(new Pelicula(codigo, nombre, genero, duracion, clasificacion));
+                    System.out.println("Pelicula registrada.");
+                    break;
+                case 2:
+                    imprimirLista(cinema.getPeliculas(), "No hay peliculas registradas.");
+                    break;
+                case 3:
+                    String codigoMod = leerTexto("Codigo de la pelicula a modificar: ");
+                    if (cinema.buscarPelicula(codigoMod) == null) {
+                        System.out.println("No existe una pelicula con ese codigo.");
+                        break;
+                    }
+                    String nuevoNombre = leerTexto("Nuevo nombre: ");
+                    String nuevoGenero = leerTexto("Nuevo genero: ");
+                    int nuevaDuracion = leerEntero("Nueva duracion en minutos: ");
+                    ClasificacionPelicula nuevaClasificacion = leerClasificacion();
+                    cinema.modificarPelicula(codigoMod, nuevoNombre, nuevoGenero, nuevaDuracion, nuevaClasificacion);
+                    System.out.println("Pelicula modificada.");
+                    break;
+                case 4:
+                    if (cinema.deshabilitarPelicula(leerTexto("Codigo de la pelicula a deshabilitar: "))) {
+                        System.out.println("Pelicula deshabilitada.");
+                    } else {
+                        System.out.println("No existe una pelicula con ese codigo.");
+                    }
+                    break;
+                case 5:
+                    break;
+                default:
+                    System.out.println("Opcion no valida.");
+            }
+        } while (opcion != 5);
+    }
+
+    private static void administrarFunciones() throws SalaNoDisponibleException {
+        int opcion;
+        do {
+            System.out.println();
+            System.out.println("--- Administrar funciones ---");
+            System.out.println("1. Programar funcion");
+            System.out.println("2. Consultar todas las funciones");
+            System.out.println("3. Definir valor de las entradas (tarifas)");
+            System.out.println("4. Volver");
+            opcion = leerEntero("Seleccione una opcion: ");
+            switch (opcion) {
+                case 1:
+                    imprimirLista(cinema.consultarPeliculasDisponibles(), "No hay peliculas disponibles.");
+                    Pelicula pelicula = cinema.buscarPelicula(leerTexto("Codigo de la pelicula: "));
+                    imprimirLista(cinema.getSalas(), "No hay salas registradas.");
+                    Sala sala = cinema.buscarSala(leerTexto("Codigo de la sala: "));
+                    LocalDate fecha = leerFecha("Fecha (AAAA-MM-DD): ");
+                    LocalTime hora = leerHora("Hora (HH:mm): ");
+                    double valorBase = leerDecimal("Valor de la entrada general: ");
+                    Funcion funcion = cinema.programarFuncion(pelicula, sala, fecha, hora, valorBase);
+                    System.out.println("Funcion programada: " + funcion);
+                    break;
+                case 2:
+                    imprimirLista(cinema.getFunciones(), "No hay funciones registradas.");
+                    break;
+                case 3:
+                    TipoEntrada tipo = leerTipoEntrada(null);
+                    tipo.setValor(leerDecimal("Nuevo valor para " + tipo + ": "));
+                    System.out.println("Tarifa actualizada.");
+                    break;
+                case 4:
+                    break;
+                default:
+                    System.out.println("Opcion no valida.");
+            }
+        } while (opcion != 4);
+    }
+
+    private static void administrarSalas() throws SalaDuplicadaException {
+        int opcion;
+        do {
+            System.out.println();
+            System.out.println("--- Administrar salas ---");
+            System.out.println("1. Registrar sala");
+            System.out.println("2. Consultar salas");
+            System.out.println("3. Modificar sala");
+            System.out.println("4. Deshabilitar sala");
+            System.out.println("5. Volver");
+            opcion = leerEntero("Seleccione una opcion: ");
+            switch (opcion) {
+                case 1:
+                    String codigo = leerTexto("Codigo: ");
+                    String nombre = leerTexto("Nombre o numero: ");
+                    int capacidad = leerEntero("Capacidad: ");
+                    cinema.registrarSala(new Sala(codigo, nombre, capacidad));
+                    System.out.println("Sala registrada.");
+                    break;
+                case 2:
+                    imprimirLista(cinema.getSalas(), "No hay salas registradas.");
+                    break;
+                case 3:
+                    String codigoMod = leerTexto("Codigo de la sala a modificar: ");
+                    if (cinema.buscarSala(codigoMod) == null) {
+                        System.out.println("No existe una sala con ese codigo.");
+                        break;
+                    }
+                    String nuevoNombre = leerTexto("Nuevo nombre o numero: ");
+                    int nuevaCapacidad = leerEntero("Nueva capacidad: ");
+                    cinema.modificarSala(codigoMod, nuevoNombre, nuevaCapacidad);
+                    System.out.println("Sala modificada.");
+                    break;
+                case 4:
+                    if (cinema.deshabilitarSala(leerTexto("Codigo de la sala a deshabilitar: "))) {
+                        System.out.println("Sala fuera de servicio.");
+                    } else {
+                        System.out.println("No existe una sala con ese codigo.");
+                    }
+                    break;
+                case 5:
+                    break;
+                default:
+                    System.out.println("Opcion no valida.");
+            }
+        } while (opcion != 5);
+    }
     private static void generarReportes() throws FuncionNoEncontradaException {
         int opcion;
         do {

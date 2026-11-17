@@ -123,4 +123,5 @@ class CinemaTest {
         assertThrows(FuncionNoEncontradaException.class, () -> cinema.obtenerFuncion("FUN-999"));
     }
 
+
 }
